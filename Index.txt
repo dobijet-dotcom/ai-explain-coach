@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>설명문 글쓰기 AI 촉진자</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  :root {
+    --ink: #1a1a2e;
+    --paper: #faf8f3;
+    --cream: #f2eed8;
+    --accent: #c0392b;
+    --accent-light: #e8a89c;
+    --gold: #b8860b;
+    --sage: #5a7a5a;
+    --muted: #7a7060;
+    --border: #d4cfc0;
+    --highlight: #fff3cd;
+    --stage1: #e8f4e8;
+    --stage2: #e8eef8;
+    --stage3: #f8e8e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 10% 20%, rgba(192,57,43,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(90,122,90,0.04) 0%, transparent 50%);
+  }
+
+  header {
+    background: var(--ink);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 3px solid var(--accent);
+  }
+
+  header .logo {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+
+  header .logo span {
+    color: var(--accent-light);
+  }
+
+  header .subtitle {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .stage-nav {
+    display: flex;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    padding: 0 16px;
+  }
+
+  .stage-btn {
+    padding: 14px 24px;
+    border: none;
+    background: transparent;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stage-btn .num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .stage-btn.active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+    font-weight: 700;
+  }
+
+  .stage-btn.active .num {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .stage-btn.completed .num {
+    background: var(--sage);
+    color: #fff;
+  }
+
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 20px;
+  }
+
+  /* ── STAGE PANELS ── */
+  .stage-panel { display: none; }
+  .stage-panel.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .stage-header {
+    margin-bottom: 24px;
+  }
+
+  .stage-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 10px;
+  }
+
+  .tag-s1 { background: var(--stage1); color: var(--sage); }
+  .tag-s2 { background: var(--stage2); color: #3a5a9a; }
+  .tag-s3 { background: var(--stage3); color: var(--accent); }
+
+  .stage-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .stage-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+    border-left: 3px solid var(--border);
+    padding-left: 14px;
+  }
+
+  /* ── TOPIC INPUT ── */
+  .topic-section {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .topic-section label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .topic-section input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 16px;
+    background: #fff;
+    color: var(--ink);
+    transition: border-color 0.2s;
+  }
+
+  .topic-section input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* ── TIMER ── */
+  .timer-bar {
+    background: var(--ink);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+  }
+
+  .timer-display {
+    font-family: 'Courier New', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 2px;
+  }
+
+  .timer-display.urgent { color: #ff6b6b; animation: pulse 1s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .timer-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 1px;
+  }
+
+  .timer-controls { display: flex; gap: 8px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #a93226; transform: translateY(-1px); }
+
+  .btn-secondary {
+    background: var(--cream);
+    color: var(--ink);
+    border: 1.5px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); }
+
+  .btn-green {
+    background: var(--sage);
+    color: #fff;
+  }
+  .btn-green:hover { background: #4a6a4a; }
+
+  .btn-large {
+    padding: 14px 32px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ── BRAIN DUMP ── */
+  .dump-area {
+    width: 100%;
+    min-height: 200px;
+    padding: 16px;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 16px;
+    line-height: 1.8;
+    background: #fff;
+    color: var(--ink);
+    resize: vertical;
+    transition: border-color 0.2s;
+  }
+
+  .dump-area:focus {
+    outline: none;
+    border-color: var(--accent);
+    border-style: solid;
+  }
+
+  .dump-prompt {
+    background: var(--highlight);
+    border-left: 4px solid var(--gold);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+    color: #5a4a00;
+  }
+
+  /* ── AI RESPONSE ── */
+  .ai-bubble {
+    background: var(--ink);
+    color: #fff;
+    border-radius: 12px 12px 12px 2px;
+    padding: 16px 20px;
+    font-size: 15px;
+    line-height: 1.8;
+    margin-bottom: 16px;
+    position: relative;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .ai-bubble::before {
+    content: "✦ AI 촉진자";
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent-light);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .ai-bubble.loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .dot-loader span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+
+  .dot-loader span:nth-child(2) { animation-delay: 0.2s; }
+  .dot-loader span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-8px); }
+  }
+
+  /* ── KEYWORD CHIPS ── */
+  .chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    min-height: 48px;
+    padding: 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1.5px solid transparent;
+    user-select: none;
+  }
+
+  .chip.unassigned {
+    background: var(--cream);
+    color: var(--muted);
+    border-color: var(--border);
+  }
+
+  .chip.assigned {
+    opacity: 0.5;
+    text-decoration: line-through;
+  }
+
+  /* ── METHOD CARDS ── */
+  .methods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .method-card {
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    background: #fff;
+    transition: all 0.2s;
+  }
+
+  .method-card.active {
+    border-color: var(--accent);
+    background: #fff8f7;
+  }
+
+  .method-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .method-name {
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .method-emoji { font-size: 18px; }
+
+  .method-drop {
+    min-height: 60px;
+    padding: 8px;
+    border: 1.5px dashed var(--border);
+    border-radius: 6px;
+    background: var(--cream);
+    font-size: 12px;
+    color: var(--muted);
+    transition: all 0.15s;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-content: flex-start;
+  }
+
+  .method-drop.drag-over {
+    border-color: var(--accent);
+    background: #fff8f7;
+  }
+
+  .method-drop .chip {
+    background: #fff;
+    color: var(--ink);
+    border-color: var(--border);
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+
+  .method-template {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--cream);
+    padding: 8px;
+    border-radius: 4px;
+    line-height: 1.6;
+  }
+
+  .method-template strong {
+    color: var(--ink);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ── STRUCTURE VIEW ── */
+  .structure-section {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .structure-section h3 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .structure-section h3::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .sentence-starters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .starter-chip {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .starter-chip:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .draft-area {
+    width: 100%;
+    min-height: 300px;
+    padding: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 16px;
+    line-height: 2;
+    background: #fff;
+    color: var(--ink);
+    resize: vertical;
+  }
+
+  .draft-area:focus {
+    outline: none;
+    border-color: var(--sage);
+  }
+
+  /* ── PROGRESS ── */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sage), var(--accent));
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 24px 0;
+  }
+
+  .action-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  /* ── FEEDBACK SECTION ── */
+  .feedback-card {
+    border-left: 4px solid var(--sage);
+    padding: 16px 20px;
+    background: var(--stage1);
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 12px;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .feedback-card h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sage);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .feedback-card p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--ink);
+  }
+
+  /* ── WORD COUNT ── */
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    padding: 0 4px;
+  }
+
+  /* ── HELP TIP ── */
+  .tip-box {
+    background: var(--highlight);
+    border: 1px solid #e6d080;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #5a4a00;
+    line-height: 1.7;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .tip-box .tip-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── COMPLETE PANEL ── */
+  .complete-panel {
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .complete-icon { font-size: 48px; margin-bottom: 16px; }
+
+  .complete-panel h2 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .complete-panel p {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.8;
+    max-width: 500px;
+    margin: 0 auto 24px;
+  }
+
+  /* ── TITLE BANNER ── */
+  .title-banner {
+    display: none;
+    background: linear-gradient(135deg, var(--ink) 0%, #2d2d4e 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 10px 32px;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .title-banner.visible { display: flex; }
+
+  .title-banner-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .title-banner-text {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .title-banner-edit {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 4px;
+    color: rgba(255,255,255,0.6);
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .title-banner-edit:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+
+  /* 제목 입력 섹션 */
+  .title-input-section {
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+
+  .title-input-section label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .title-input-section input {
+    width: 100%;
+    padding: 11px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 17px;
+    font-weight: 600;
+    background: #fff;
+    color: var(--ink);
+    transition: border-color 0.2s;
+  }
+
+  .title-input-section input:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+
+  .title-input-section input::placeholder {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: #bbb;
+  }
+
+  /* 제목 후보 칩 */
+  .title-candidates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .title-cand-chip {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-family: 'Noto Serif KR', serif;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--ink);
+  }
+
+  .title-cand-chip:hover {
+    border-color: var(--gold);
+    background: var(--highlight);
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 16px; }
+    header .logo { font-size: 18px; }
+    .methods-grid { grid-template-columns: 1fr; }
+    .stage-btn { padding: 12px 16px; font-size: 13px; }
+    .title-banner { padding: 10px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">설명문 <span>AI 글쓰기 촉진자</span></div>
+    <div class="subtitle">Brain Dump → 분류 → 연결</div>
+  </div>
+</header>
+
+<!-- 글 제목 배너 - 1단계부터 항상 표시 -->
+<div class="title-banner" id="titleBanner">
+  <span class="title-banner-label">✦ 내 글 제목</span>
+  <span class="title-banner-text" id="titleBannerText"></span>
+  <button class="title-banner-edit" onclick="openTitleEdit()">✎ 수정</button>
+</div>
+
+<nav class="stage-nav">
+  <button class="stage-btn active" onclick="goStage(0)" id="nav0">
+    <span class="num">0</span> 주제 입력
+  </button>
+  <button class="stage-btn" onclick="goStage(1)" id="nav1">
+    <span class="num">1</span> 브레인 덤프
+  </button>
+  <button class="stage-btn" onclick="goStage(2)" id="nav2">
+    <span class="num">2</span> 설명 방법 분류
+  </button>
+  <button class="stage-btn" onclick="goStage(3)" id="nav3">
+    <span class="num">3</span> 처음-중간-끝 · 초고
+  </button>
+</nav>
+
+<div class="main">
+
+  <!-- ─── STAGE 0: 주제 입력 ─── -->
+  <div class="stage-panel active" id="stage0">
+    <div class="stage-header">
+      <div class="stage-tag tag-s1">시작하기</div>
+      <h1 class="stage-title">오늘 설명할 주제는 무엇인가요?</h1>
+      <p class="stage-desc">주제를 입력하면 AI 촉진자가 맞춤 질문으로 아이디어를 꺼내도록 도와줍니다.</p>
+    </div>
+
+    <div class="topic-section">
+      <label>설명 주제</label>
+      <input type="text" id="topicInput" placeholder="아래 예시를 클릭하거나 직접 입력하세요 …" />
+      <div style="margin-top:14px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">✦ 주제 예시 — 클릭하면 입력돼요</div>
+        <div id="topicExamples" style="display:flex;flex-wrap:wrap;gap:7px;"></div>
+      </div>
+    </div>
+
+    <!-- 제목 입력 -->
+    <div class="title-input-section">
+      <label>✍️ 내 글의 제목 (선택, 나중에 수정 가능)</label>
+      <input type="text" id="titleInput" placeholder="예) 환경오염의 원인과 우리가 할 수 있는 일" />
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">
+        제목이 있으면 글 쓰는 내내 방향을 잃지 않아요. 지금 떠오르지 않으면 비워두세요 — AI가 나중에 제안해줍니다.
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <span class="tip-icon">💡</span>
+      <span>설명문은 <strong>독자가 이해하게 만드는 글</strong>입니다. 주제가 정해지면 AI가 "이 글을 읽을 독자는 누구인지, 독자에게 어떤 정보를 전달할 것인지" 먼저 생각하도록 도와줍니다.</span>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-primary btn-large" onclick="startJourney()">시작하기 →</button>
+    </div>
+  </div>
+
+  <!-- ─── STAGE 1: 브레인 덤프 ─── -->
+  <div class="stage-panel" id="stage1">
+    <div class="stage-header">
+      <div class="stage-tag tag-s1">1단계 · Brain Dump</div>
+      <h1 class="stage-title">독자에게 무엇을 전달할까요?</h1>
+      <p class="stage-desc">설명문의 목적은 <strong>독자가 이해하게 만드는 것</strong>입니다. 독자가 누군지, 무엇을 모를지 생각하면서 — 전달하고 싶은 정보를 단어·구절로 자유롭게 쏟아내세요. <strong>3분 타이머</strong>를 활용하세요.</p>
+    </div>
+
+    <div id="aiQuestion1" class="ai-bubble loading">
+      <div class="dot-loader"><span></span><span></span><span></span></div>
+    </div>
+
+    <!-- 설명 방법 미리 선택 -->
+    <div style="background:var(--cream);border:1.5px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">✦ 어떤 설명 방법을 쓸까요? — 생각나는 것 모두 선택하세요</div>
+      <div id="methodPreSelect" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6;">
+        선택한 방법을 생각하면서 브레인덤프를 하면 더 풍부한 내용이 나옵니다. 나중에 분류 단계에서 바꿀 수 있어요.
+      </div>
+    </div>
+
+    <div class="timer-bar">
+      <div>
+        <div class="timer-label">남은 시간</div>
+        <div class="timer-display" id="timerDisplay">03:00</div>
+      </div>
+      <div class="timer-controls">
+        <button class="btn btn-secondary" onclick="toggleTimer()" id="timerBtn">▶ 시작</button>
+        <button class="btn btn-secondary" onclick="resetTimer()">↺ 초기화</button>
+      </div>
+    </div>
+
+    <div class="dump-prompt">
+      ✏️ <strong>규칙:</strong> 지우지 마세요. 맞춤법 신경 쓰지 마세요. 독자에게 전달하고 싶은 정보를 떠오르는 대로 전부 씁니다.
+    </div>
+
+    <textarea class="dump-area" id="dumpArea" placeholder="예) 환경오염 → 공장 연기, 쓰레기, 바다 오염, 동물 멸종, 분리수거, 지구온난화, 숨쉬기 힘들다 …"></textarea>
+    <div class="meta-row">
+      <span id="dumpWordCount">0 개 단어·어구</span>
+      <span>많을수록 좋아요 ✦</span>
+    </div>
+
+    <!-- 선택 문장 표시 영역 -->
+    <div id="selectedSentencesBox" style="display:none; margin-top:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">✦ 내가 쓴 문장 · 어구 — 클릭하면 초고에 바로 사용해요</div>
+      <div id="selectedSentenceChips" style="display:flex;flex-wrap:wrap;gap:8px; padding:12px; background:#fff; border:1.5px solid var(--border); border-radius:8px; min-height:48px;"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;padding-left:4px;">💾 브레인 덤프에서 줄 단위로 자동 추출됩니다. 나중에 초고 단계에서도 볼 수 있어요.</div>
+    </div>
+
+    <div id="aiEncourage" style="margin-top:16px; display:none;"></div>
+
+    <!-- AI 제목 후보 제안 -->
+    <div id="titleSuggestBox" style="display:none; margin-top:20px;">
+      <div class="title-input-section">
+        <label>✦ AI 제목 후보 — 클릭해서 선택하거나 직접 수정하세요</label>
+        <div class="title-candidates" id="titleCandidates"></div>
+        <input type="text" id="titleConfirmInput" placeholder="제목을 직접 입력하거나 위에서 선택하세요" style="margin-top:10px;" />
+        <button class="btn btn-green" style="margin-top:10px; width:100%;" onclick="confirmTitle()">이 제목으로 확정 ✓</button>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary" onclick="getAiBoost()">💬 더 떠올리기 힌트</button>
+      <button class="btn btn-primary" onclick="proceedToClassify()">분류하러 가기 →</button>
+    </div>
+  </div>
+
+  <!-- ─── STAGE 2: 분류 ─── -->
+  <div class="stage-panel" id="stage2">
+    <div class="stage-header">
+      <div class="stage-tag tag-s2">3단계 · 분류하기</div>
+      <h1 class="stage-title">어떤 설명 방법에 어울리나요?</h1>
+      <p class="stage-desc">AI가 키워드 조각을 추출했습니다. 아래 카드에 끌어다 놓거나 클릭해서 분류하세요.</p>
+    </div>
+
+    <div id="aiClassifyGuide" class="ai-bubble loading">
+      <div class="dot-loader"><span></span><span></span><span></span></div>
+    </div>
+
+    <h3 style="font-size:14px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">아이디어 조각</h3>
+    <div class="chips-container" id="chipsPool"></div>
+
+    <div class="divider"></div>
+
+    <div class="methods-grid" id="methodsGrid"></div>
+
+    <div id="aiClassifyFeedback" style="display:none;"></div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary" onclick="autoClassify()">🤖 AI가 분류해줘</button>
+      <button class="btn btn-primary" onclick="proceedToDraft()">초고 작성하러 가기 →</button>
+    </div>
+  </div>
+
+  <!-- ─── STAGE 3: 연결 · 초고 ─── -->
+  <div class="stage-panel" id="stage3">
+    <div class="stage-header">
+      <div class="stage-tag tag-s3">3단계 · 처음-중간-끝</div>
+      <h1 class="stage-title">이제 순서대로 써보세요</h1>
+      <p class="stage-desc">설명문은 <strong>처음</strong>(대상 소개) → <strong>중간</strong>(핵심 설명) → <strong>끝</strong>(정리)으로 이어집니다. 독자가 이해하기 쉽게 정보를 전달하는 것이 목표예요.</p>
+    </div>
+
+    <div id="aiStructureGuide" class="ai-bubble loading">
+      <div class="dot-loader"><span></span><span></span><span></span></div>
+    </div>
+
+    <div id="structureCards"></div>
+
+    <div class="divider"></div>
+
+    <h3 style="font-family:'Noto Serif KR',serif; font-size:18px; margin-bottom:16px;">✍️ 나의 초고</h3>
+
+    <!-- 초고 위 제목 표시 -->
+    <div id="draftTitleRow" style="margin-bottom:16px; padding:14px 18px; background:var(--highlight); border:1.5px solid #e6d080; border-radius:8px; display:flex; align-items:center; gap:12px;">
+      <span style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">제목</span>
+      <input id="draftTitleInput" type="text" style="flex:1; background:transparent; border:none; border-bottom:1.5px solid #e6d080; padding:4px 0; font-family:'Noto Serif KR',serif; font-size:17px; font-weight:700; color:var(--ink); outline:none;" placeholder="제목을 입력하세요" oninput="updateTitleBanner(this.value)" />
+    </div>
+
+    <!-- 브레인덤프 재활용 패널 -->
+    <div id="dumpRecycleBox" style="display:none; margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">♻️ 브레인 덤프 → 설명문 문장 변환 — 클릭하면 초고에 추가</div>
+      <div id="dumpRecycleChips" style="display:flex;flex-wrap:wrap;flex-direction:column;gap:4px; padding:12px; background:var(--cream); border:1.5px solid var(--border); border-radius:8px; min-height:44px;"></div>
+    </div>
+
+    <textarea class="draft-area" id="draftArea" placeholder="위 문장 틀을 클릭하거나, 직접 써보세요…"></textarea>
+    <div class="meta-row">
+      <span id="draftWordCount">0 자</span>
+      <span>완벽하지 않아도 됩니다 ✦</span>
+    </div>
+
+    <div class="action-row" style="margin-top:16px;">
+      <button class="btn btn-secondary" onclick="getFeedback()">💬 AI 피드백 받기</button>
+    </div>
+
+    <div id="aiFeedbackSection" style="margin-top:16px; display:none;"></div>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ──
+let topic = '';
+let title = '';
+let currentStage = 0;
+let timerInterval = null;
+let timerSeconds = 180;
+let timerRunning = false;
+let keywords = [];
+let methodAssignments = {};
+let dumpSentences = [];
+let preSelectedMethods = []; // 브레인덤프 전 미리 선택한 설명 방법 // 브레인덤프 문장 조각
+
+// ── 주제 예시 데이터 ──
+const TOPIC_EXAMPLES = [
+  { label: '🎬 왕과 사는 남자',    text: '왕과 사는 남자' },
+  { label: '🌍 환경오염',           text: '환경오염의 원인과 영향' },
+  { label: '🧠 MBTI',               text: 'MBTI란 무엇인가' },
+  { label: '🐾 애완동물',           text: '애완동물을 키우면 좋은 점' },
+  { label: '🎵 K-POP',              text: 'K-POP이 세계적으로 인기 있는 이유' },
+  { label: '🏪 편의점 음식',        text: '편의점 음식의 종류와 특징' },
+  { label: '😣 청소년기 여드름',    text: '청소년기 여드름이 생기는 이유' },
+  { label: '💤 수면',               text: '수면이 건강에 미치는 영향' },
+  { label: '🐼 멸종위기 동물',      text: '멸종위기 동물을 보호해야 하는 이유' },
+  { label: '📱 스마트폰 중독',      text: '스마트폰 중독의 원인과 예방법' },
+  { label: '🍜 라면',               text: '라면의 종류와 조리 방법' },
+  { label: '🌱 채식주의',           text: '채식주의란 무엇인가' },
+  { label: '🎮 e스포츠',            text: 'e스포츠가 스포츠인 이유' },
+  { label: '📚 독서',               text: '독서가 뇌 발달에 미치는 영향' },
+  { label: '🌙 밤샘 공부',          text: '밤샘 공부가 효과 없는 이유' },
+  { label: '🍔 패스트푸드',         text: '패스트푸드가 건강에 미치는 영향' },
+  { label: '🌊 미세플라스틱',       text: '미세플라스틱이란 무엇인가' },
+  { label: '🤝 자원봉사',           text: '자원봉사 활동의 의미와 효과' },
+];
+
+// ── 설명 방법 미리 선택 UI ──
+function renderMethodPreSelect() {
+  const container = document.getElementById('methodPreSelect');
+  if (!container) return;
+  container.innerHTML = '';
+  METHODS.forEach(m => {
+    const chip = document.createElement('span');
+    chip.style.cssText = `
+      display:inline-flex; align-items:center; gap:5px;
+      padding:8px 14px; border-radius:20px; font-size:13px; cursor:pointer;
+      border:1.5px solid var(--border); background:#fff; color:var(--muted);
+      transition:all 0.15s; user-select:none;`;
+    chip.innerHTML = `${m.emoji} <strong>${m.name}</strong> <span style="font-size:10px;color:var(--muted)">${m.desc}</span>`;
+    chip.title = m.desc;
+
+    const toggle = () => {
+      const idx = preSelectedMethods.indexOf(m.id);
+      if (idx > -1) {
+        preSelectedMethods.splice(idx, 1);
+        chip.style.background = '#fff';
+        chip.style.borderColor = 'var(--border)';
+        chip.style.color = 'var(--muted)';
+      } else {
+        preSelectedMethods.push(m.id);
+        chip.style.background = 'var(--ink)';
+        chip.style.borderColor = 'var(--ink)';
+        chip.style.color = '#fff';
+        chip.querySelector('span').style.color = 'rgba(255,255,255,0.6)';
+      }
+    };
+    chip.onclick = toggle;
+    container.appendChild(chip);
+  });
+}
+
+// ── 제목 배너 업데이트 ──
+function updateTitleBanner(t) {
+  title = t;
+  const banner = document.getElementById('titleBanner');
+  const bannerText = document.getElementById('titleBannerText');
+  if (t && t.trim()) {
+    bannerText.textContent = t.trim();
+    banner.classList.add('visible');
+  } else {
+    banner.classList.remove('visible');
+  }
+}
+
+function openTitleEdit() {
+  const current = document.getElementById('titleBannerText').textContent;
+  const newTitle = prompt('제목을 수정하세요:', current);
+  if (newTitle !== null && newTitle.trim()) updateTitleBanner(newTitle.trim());
+}
+
+function confirmTitle() {
+  const val = document.getElementById('titleConfirmInput').value.trim();
+  if (val) {
+    updateTitleBanner(val);
+    document.getElementById('titleSuggestBox').style.display = 'none';
+  }
+}
+
+// ── 주제 예시 렌더링 ──
+function renderTopicExamples() {
+  const container = document.getElementById('topicExamples');
+  TOPIC_EXAMPLES.forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = 'chip unassigned';
+    chip.style.cssText = 'cursor:pointer; font-size:13px; padding:7px 14px; border-radius:20px;';
+    chip.textContent = t.label;
+    chip.onclick = () => {
+      document.getElementById('topicInput').value = t.text;
+      document.querySelectorAll('#topicExamples .chip').forEach(c => c.style.background = '');
+      chip.style.background = 'var(--accent)';
+      chip.style.color = '#fff';
+      chip.style.borderColor = 'var(--accent)';
+    };
+    container.appendChild(chip);
+  });
+}
+
+// ── 브레인덤프 문장 추출 ──
+function extractDumpSentences(text) {
+  // 줄바꿈, 쉼표, 마침표, →, / 등으로 분리
+  const raw = text.split(/[\n,，、/→·。.!?]+/)
+    .map(s => s.trim())
+    .filter(s => s.length >= 2);
+  return [...new Set(raw)]; // 중복 제거
+}
+
+function updateDumpSentences() {
+  const text = document.getElementById('dumpArea').value;
+  dumpSentences = extractDumpSentences(text);
+  const box = document.getElementById('selectedSentencesBox');
+  const chipsEl = document.getElementById('selectedSentenceChips');
+  if (dumpSentences.length === 0) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  chipsEl.innerHTML = '';
+  dumpSentences.forEach(s => {
+    const chip = document.createElement('span');
+    chip.className = 'chip unassigned';
+    chip.style.cssText = 'font-size:12px; cursor:pointer;';
+    chip.textContent = s;
+    chip.title = '클릭하면 초고에 추가';
+    chip.onclick = () => {
+      // 초고 단계면 바로 삽입, 아니면 저장 표시
+      const draft = document.getElementById('draftArea');
+      if (currentStage === 3 && draft) {
+        appendToDraft(s);
+        chip.style.background = 'var(--sage)';
+        chip.style.color = '#fff';
+        chip.style.borderColor = 'var(--sage)';
+      } else {
+        chip.style.background = 'var(--accent)';
+        chip.style.color = '#fff';
+        chip.style.borderColor = 'var(--accent)';
+        chip.title = '초고 단계에서 클릭하면 삽입됩니다';
+      }
+    };
+    chipsEl.appendChild(chip);
+  });
+}
+
+const METHODS = [
+  { id: 'definition', name: '정의', emoji: '📖',
+    desc: '대상의 뜻이나 개념을 밝히는 방법',
+    starters: ['○○란 ~을 말한다.', '○○의 개념은 ~이다.', '○○를 한마디로 정의하면 ~이다.'] },
+  { id: 'example',    name: '예시', emoji: '💡',
+    desc: '구체적인 사례를 들어 설명하는 방법',
+    starters: ['예를 들어, ~의 경우를 보면 알 수 있다.', '구체적인 사례로 ~이 있다.', '실제로 ~에서 찾아볼 수 있다.'] },
+  { id: 'compare',    name: '비교', emoji: '🔁',
+    desc: '둘 이상의 대상에서 공통점을 찾는 방법',
+    starters: ['○○와 ××는 모두 ~하다는 공통점이 있다.', '○○와 마찬가지로 ××도 ~이다.', '두 대상은 ~한 점에서 비슷하다.'] },
+  { id: 'contrast',   name: '대조', emoji: '↔️',
+    desc: '둘 이상의 대상에서 차이점을 밝히는 방법',
+    starters: ['○○와 달리 ××는 ~하다.', '반면에 ××는 ~한다는 점에서 차이가 있다.', '○○은 ~하지만, ××는 ~하다.'] },
+  { id: 'classify',   name: '분류', emoji: '🗂️',
+    desc: '대상을 일정한 기준에 따라 묶는 방법',
+    starters: ['○○는 크게 A, B, C로 나눌 수 있다.', '~를 기준으로 나누면 ~이다.', '같은 특징끼리 묶으면 ~이다.'] },
+  { id: 'division',   name: '구분', emoji: '✂️',
+    desc: '하나의 대상을 기준에 따라 나누는 방법',
+    starters: ['○○는 ~에 따라 A와 B로 구분된다.', '크게 두 가지로 나누면 ~이다.', '○○을 기준으로 구분하면 ~이다.'] },
+  { id: 'analysis',   name: '분석', emoji: '🔍',
+    desc: '대상을 구성 요소로 나누어 설명하는 방법',
+    starters: ['○○을 구성하는 요소를 살펴보면 ~이다.', '~의 특징을 자세히 살펴보면 ~이다.', '~를 단계별로 분석하면 ~이다.'] },
+  { id: 'cause',      name: '인과', emoji: '🔗',
+    desc: '원인과 결과의 관계로 설명하는 방법',
+    starters: ['~때문에 결국 ~라는 결과가 나타난다.', '~의 원인은 ~에 있다.', '이로 인해 ~하는 결과가 생겼다.'] },
+];
+
+// ── NAVIGATION ──
+function goStage(n) {
+  document.querySelectorAll('.stage-panel').forEach((p,i) => {
+    p.classList.toggle('active', i === n);
+  });
+  document.querySelectorAll('.stage-btn').forEach((b,i) => {
+    b.classList.toggle('active', i === n);
+  });
+  currentStage = n;
+}
+
+// ── API CALL (타임아웃 + 폴백 포함) ──
+async function callAI(prompt, systemPrompt = '') {
+  const sys = systemPrompt || `당신은 한국 중학생의 국어 설명문 쓰기를 도와주는 친절한 AI 촉진자입니다.
+학생이 스스로 아이디어를 떠올리도록 질문하고 격려합니다.
+반드시 한국어로, 중학생이 이해하기 쉬운 말투로 답합니다.
+답변은 3~5문장 이내로 간결하게 합니다.`;
+
+  const fetchPromise = fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: sys,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }).then(async res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data.content?.[0]?.text || '';
+  });
+
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('timeout')), 20000)
+  );
+
+  try {
+    return await Promise.race([fetchPromise, timeoutPromise]);
+  } catch (e) {
+    console.warn('AI 호출 실패:', e.message);
+    return null;
+  }
+}
+
+// ── STAGE 0 → 1 ──
+async function startJourney() {
+  topic = document.getElementById('topicInput').value.trim();
+  if (!topic) { alert('주제를 입력해 주세요!'); return; }
+
+  // 제목 처리 - 입력했으면 바로 배너에, 없으면 빈 상태로
+  const inputTitle = document.getElementById('titleInput').value.trim();
+  if (inputTitle) {
+    updateTitleBanner(inputTitle);
+  } else {
+    // 주제를 임시 제목으로 설정 (나중에 AI가 제안)
+    updateTitleBanner(topic);
+  }
+
+  goStage(1);
+  document.getElementById('nav1').classList.add('active');
+  renderMethodPreSelect();
+
+  const el = document.getElementById('aiQuestion1');
+  el.classList.add('loading');
+  el.innerHTML = '<div class="dot-loader"><span></span><span></span><span></span></div>';
+
+  const q = await callAI(
+    `학생이 설명문 주제로 "${topic}"을 골랐습니다.
+설명문은 독자에게 정보를 전달하고 이해시키는 것이 목적입니다.
+
+브레인덤프를 시작하기 전에, 학생이 다음 세 가지를 먼저 생각하도록 질문해주세요:
+1. 이 글을 읽을 독자는 누구인가? (예: 이 주제를 잘 모르는 친구, 부모님 등)
+2. 독자가 이 주제에 대해 모르거나 궁금해할 것이 무엇인가?
+3. 이 주제를 설명할 때 어떤 설명 방법이 어울릴까? 아래 8가지 중에서 골라보세요.
+   - 정의(뜻을 밝히기), 예시(구체적 사례 들기), 비교(공통점 찾기), 대조(차이점 밝히기),
+     분류(기준으로 묶기), 구분(기준으로 나누기), 분석(구성 요소로 쪼개기), 인과(원인과 결과)
+   예) "MBTI라면 정의로 시작해서 분류로 유형을 나누면 자연스럽겠다"처럼 이유도 함께 생각하게 해주세요.
+
+질문은 중학생이 쉽게 답할 수 있도록 친근하게, 번호를 붙여 물어보세요.
+단어 하나, 짧은 구절로 답해도 된다고 격려해주세요.`
+  );
+
+  el.classList.remove('loading');
+  if (q) {
+    el.innerHTML = q.replace(/\n/g, '<br>');
+  } else {
+    el.innerHTML = `"${topic}"에 대해 아는 것을 자유롭게 써보세요!<br>단어 하나도 괜찮아요. 떠오르는 것 모두 적어보세요 😊`;
+  }
+}
+
+// ── TIMER ──
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timerBtn').textContent = '▶ 계속';
+  } else {
+    timerRunning = true;
+    document.getElementById('timerBtn').textContent = '⏸ 일시정지';
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      updateTimerDisplay();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('timerDisplay').textContent = '완료!';
+        document.getElementById('timerDisplay').classList.add('urgent');
+        document.getElementById('aiEncourage').style.display = 'block';
+        document.getElementById('aiEncourage').innerHTML = `<div class="ai-bubble">⏱️ 3분이 지났어요! 지금 쓴 내용만으로도 충분합니다. 분류 단계로 넘어가 볼까요?</div>`;
+      }
+    }, 1000);
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60).toString().padStart(2,'0');
+  const s = (timerSeconds % 60).toString().padStart(2,'0');
+  const el = document.getElementById('timerDisplay');
+  el.textContent = `${m}:${s}`;
+  if (timerSeconds <= 30) el.classList.add('urgent');
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = 180;
+  document.getElementById('timerDisplay').textContent = '03:00';
+  document.getElementById('timerDisplay').classList.remove('urgent');
+  document.getElementById('timerBtn').textContent = '▶ 시작';
+}
+
+// ── WORD COUNT & INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  renderTopicExamples();
+
+  document.getElementById('dumpArea')?.addEventListener('input', () => {
+    const words = document.getElementById('dumpArea').value.split(/[\s,，、]+/).filter(w => w.trim().length > 0);
+    document.getElementById('dumpWordCount').textContent = `${words.length} 개 단어·어구`;
+    updateDumpSentences();
+  });
+  document.getElementById('draftArea')?.addEventListener('input', () => {
+    const len = document.getElementById('draftArea').value.replace(/\s/g,'').length;
+    document.getElementById('draftWordCount').textContent = `${len} 자`;
+  });
+});
+
+// ── AI BOOST ──
+async function getAiBoost() {
+  const dump = document.getElementById('dumpArea').value.trim();
+  const btn = document.querySelector('[onclick="getAiBoost()"]');
+  btn.disabled = true;
+  btn.textContent = '생각 중…';
+
+  const selectedNames = preSelectedMethods.map(id => METHODS.find(m=>m.id===id)?.name).filter(Boolean).join(', ');
+
+  const hint = await callAI(
+    `학생이 "${topic}"에 대한 설명문을 쓰려 합니다. 설명문의 목적은 독자에게 정보를 전달하고 이해시키는 것입니다.
+학생이 브레인덤프에 쓴 내용: "${dump || '(아직 없음)'}"
+${selectedNames ? `학생이 사용하고 싶다고 고른 설명 방법: ${selectedNames}` : ''}
+
+다음 관점에서 더 떠올릴 수 있도록 힌트 2~3개를 주세요:
+- 독자가 이 주제에서 가장 궁금해할 것
+- 독자가 오해하거나 모를 수 있는 것
+${selectedNames ? `- 선택한 설명 방법(${selectedNames})으로 쓸 수 있는 구체적인 내용` : '- 이 주제를 설명할 때 꼭 필요한 정보(원인, 종류, 특징, 사례 등)'}
+중학생에게 친근하게 물어봐 주세요.`
+  );
+
+  const el = document.getElementById('aiEncourage');
+  el.style.display = 'block';
+  el.innerHTML = `<div class="ai-bubble">${hint.replace(/\n/g,'<br>')}</div>`;
+  btn.disabled = false;
+  btn.textContent = '💬 더 떠올리기 힌트';
+}
+
+// ── STAGE 1 → 2 ──
+async function proceedToClassify() {
+  const dump = document.getElementById('dumpArea').value.trim();
+  if (!dump) { alert('먼저 아이디어를 써보세요!'); return; }
+
+  const btn = document.querySelector('[onclick="proceedToClassify()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '분석 중…'; }
+
+  // AI 제목 후보 제안 (비동기, 먼저 실행)
+  suggestTitles(dump);
+
+  goStage(2);
+  document.getElementById('nav2').classList.add('active');
+  document.getElementById('nav1').classList.add('completed');
+
+  // AI로 키워드 추출 (실패 시 직접 분리)
+  let kwJson = null;
+  try {
+    kwJson = await callAI(
+      `학생이 "${topic}"에 대해 쓴 내용입니다: "${dump}"
+이 내용에서 설명문에 쓸 수 있는 핵심 키워드나 짧은 구절을 10~15개 추출하세요.
+반드시 JSON 배열만 응답하세요. 예: ["키워드1","키워드2","키워드3"]
+다른 말 하지 마세요.`,
+      `당신은 텍스트에서 키워드를 추출하는 도구입니다. JSON 배열만 반환하세요.`
+    );
+  } catch(e) { kwJson = null; }
+
+  try {
+    if (!kwJson) throw new Error('no response');
+    const clean = kwJson.replace(/```json|```/g,'').trim();
+    keywords = JSON.parse(clean);
+    if (!Array.isArray(keywords) || keywords.length === 0) throw new Error('empty');
+  } catch {
+    // 폴백: 브레인덤프 텍스트 직접 분리
+    keywords = dump.split(/[\s,，、\n→/·]+/).map(w => w.trim()).filter(w => w.length >= 2).slice(0, 15);
+  }
+
+  methodAssignments = {};
+  METHODS.forEach(m => methodAssignments[m.id] = []);
+  renderChips();
+  renderMethodCards();
+
+  if (btn) { btn.disabled = false; btn.textContent = '분류하러 가기 →'; }
+
+  // 안내 메시지 (AI 실패해도 기본 안내 표시)
+  const guideEl = document.getElementById('aiClassifyGuide');
+  guideEl.classList.remove('loading');
+
+  const selectedNames = preSelectedMethods.map(id => METHODS.find(m=>m.id===id)?.name).filter(Boolean).join(', ');
+
+  const guide = await callAI(
+    `학생이 "${topic}"에 대한 키워드를 추출했습니다: ${keywords.join(', ')}
+${selectedNames ? `학생이 브레인덤프 전에 사용하겠다고 고른 설명 방법: ${selectedNames}` : ''}
+이 키워드들을 설명 방법(정의, 예시, 비교, 대조, 인과, 분류, 구분, 분석)에 맞게 분류해보라고 안내해주세요.
+${selectedNames ? `특히 학생이 고른 방법(${selectedNames})을 중심으로 어떤 키워드가 어울리는지 친절하게 2~3문장으로 안내해주세요.` : '어떤 기준으로 분류하면 좋은지 친절하게 2~3문장으로 설명해주세요.'}`
+  );
+
+  if (guide) {
+    guideEl.innerHTML = guide.replace(/\n/g,'<br>');
+  } else {
+    guideEl.innerHTML = `아래 키워드들을 각 설명 방법 카드에 배치해보세요!<br>
+    카드를 <strong>클릭</strong>하면 방법을 고를 수 있고, <strong>끌어다 놓기</strong>도 가능해요.<br>
+    어떤 방법으로 쓸지 잘 모르겠으면 <strong>"AI가 분류해줘"</strong> 버튼을 눌러보세요 😊`;
+  }
+}
+
+function renderChips() {
+  const pool = document.getElementById('chipsPool');
+  pool.innerHTML = '';
+  keywords.forEach((kw, i) => {
+    const isAssigned = METHODS.some(m => methodAssignments[m.id].includes(kw));
+    const chip = document.createElement('span');
+    chip.className = 'chip ' + (isAssigned ? 'assigned' : 'unassigned');
+    chip.textContent = kw;
+    chip.dataset.kw = kw;
+    chip.draggable = true;
+    chip.addEventListener('click', () => showAssignModal(kw, chip));
+    chip.addEventListener('dragstart', e => e.dataTransfer.setData('text', kw));
+    pool.appendChild(chip);
+  });
+}
+
+function renderMethodCards() {
+  const grid = document.getElementById('methodsGrid');
+  grid.innerHTML = '';
+  METHODS.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'method-card' + (methodAssignments[m.id].length > 0 ? ' active' : '');
+    card.innerHTML = `
+      <div class="method-card-header">
+        <div class="method-name"><span class="method-emoji">${m.emoji}</span>${m.name}</div>
+        <small style="color:var(--muted);font-size:11px;">${methodAssignments[m.id].length}개</small>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5;">${m.desc}</p>
+      <div class="method-drop" id="drop_${m.id}" data-method="${m.id}">
+        ${methodAssignments[m.id].map(kw =>
+          `<span class="chip" onclick="removeFromMethod('${m.id}','${kw}')">${kw} ✕</span>`
+        ).join('')}
+        ${methodAssignments[m.id].length === 0 ? '<span style="font-size:11px;color:var(--muted)">클릭하거나 끌어다 놓기</span>' : ''}
+      </div>
+      <div class="method-template">
+        <strong>문장 틀</strong>${m.starters[0]}
+      </div>`;
+
+    const drop = card.querySelector('.method-drop');
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault();
+      drop.classList.remove('drag-over');
+      const kw = e.dataTransfer.getData('text');
+      assignKeyword(m.id, kw);
+    });
+    grid.appendChild(card);
+  });
+}
+
+function showAssignModal(kw, chipEl) {
+  const existing = METHODS.find(m => methodAssignments[m.id].includes(kw));
+  if (existing) { removeFromMethod(existing.id, kw); return; }
+
+  const options = METHODS.map(m =>
+    `<button class="btn btn-secondary" style="margin:4px;font-size:13px" onclick="assignKeyword('${m.id}','${kw}');document.getElementById('assignModal').remove()">
+      ${m.emoji} ${m.name}
+    </button>`
+  ).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'assignModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999';
+  modal.innerHTML = `<div style="background:#fff;border-radius:12px;padding:24px;max-width:360px;width:90%">
+    <h3 style="font-family:'Noto Serif KR',serif;margin-bottom:16px;">"${kw}"를<br>어떤 설명 방법에 넣을까요?</h3>
+    <div style="display:flex;flex-wrap:wrap;">${options}</div>
+    <button class="btn btn-secondary" style="width:100%;margin-top:12px" onclick="document.getElementById('assignModal').remove()">취소</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function assignKeyword(methodId, kw) {
+  METHODS.forEach(m => {
+    const idx = methodAssignments[m.id].indexOf(kw);
+    if (idx > -1) methodAssignments[m.id].splice(idx, 1);
+  });
+  methodAssignments[methodId].push(kw);
+  renderChips();
+  renderMethodCards();
+}
+
+function removeFromMethod(methodId, kw) {
+  const idx = methodAssignments[methodId].indexOf(kw);
+  if (idx > -1) methodAssignments[methodId].splice(idx, 1);
+  renderChips();
+  renderMethodCards();
+}
+
+// ── AI 제목 후보 제안 ──
+async function suggestTitles(dump) {
+  const titleJson = await callAI(
+    `학생이 "${topic}"에 대해 브레인덤프를 썼습니다: "${dump}"
+이 내용을 바탕으로 설명문 제목 후보 3개를 만들어주세요.
+반드시 JSON 배열만 반환하세요. 예: ["제목1","제목2","제목3"]
+제목은 15자 이내, 중학생답게, 설명문 제목답게 써주세요.`,
+    '당신은 제목을 만드는 도구입니다. JSON 배열만 반환하세요.'
+  );
+
+  let candidates = [];
+  try {
+    if (titleJson) {
+      const clean = titleJson.replace(/```json|```/g,'').trim();
+      candidates = JSON.parse(clean);
+    }
+  } catch { candidates = []; }
+
+  // 폴백 후보
+  if (!candidates || candidates.length === 0) {
+    candidates = [
+      `${topic}란 무엇인가`,
+      `${topic}의 특징과 의미`,
+      `우리가 알아야 할 ${topic}`,
+    ];
+  }
+
+  // 분류 단계 상단에 제목 제안 블록 추가
+  const existingBox = document.getElementById('titleSuggestInClassify');
+  if (existingBox) existingBox.remove();
+
+  const box = document.createElement('div');
+  box.id = 'titleSuggestInClassify';
+  box.className = 'title-input-section';
+  box.style.marginBottom = '20px';
+  box.innerHTML = `
+    <label>✦ AI 제목 후보 — 마음에 드는 걸 클릭하거나 직접 수정하세요</label>
+    <div class="title-candidates" id="titleCandidatesClassify"></div>
+    <input type="text" id="titleConfirmClassify" placeholder="제목을 직접 입력하거나 위에서 선택" style="margin-top:10px; width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:6px; font-family:'Noto Serif KR',serif; font-size:16px;" value="${title}" />
+    <button class="btn btn-green" style="margin-top:10px; width:100%;" onclick="confirmTitleFromClassify()">이 제목으로 확정 ✓</button>`;
+
+  const stage2 = document.getElementById('stage2');
+  stage2.insertBefore(box, stage2.querySelector('.stage-header').nextSibling);
+
+  const candContainer = document.getElementById('titleCandidatesClassify');
+  candidates.forEach(c => {
+    const chip = document.createElement('span');
+    chip.className = 'title-cand-chip';
+    chip.textContent = c;
+    chip.onclick = () => {
+      document.getElementById('titleConfirmClassify').value = c;
+      document.querySelectorAll('.title-cand-chip').forEach(ch => ch.style.borderColor = '');
+      chip.style.borderColor = 'var(--gold)';
+      chip.style.background = 'var(--highlight)';
+    };
+    candContainer.appendChild(chip);
+  });
+}
+
+function confirmTitleFromClassify() {
+  const val = document.getElementById('titleConfirmClassify')?.value.trim();
+  if (val) {
+    updateTitleBanner(val);
+    const box = document.getElementById('titleSuggestInClassify');
+    if (box) {
+      box.style.background = 'var(--stage1)';
+      box.style.borderColor = 'var(--sage)';
+      box.querySelector('button').textContent = '✓ 제목 확정됨';
+      box.querySelector('button').disabled = true;
+    }
+  }
+}
+
+// ── AUTO CLASSIFY ──
+async function autoClassify() {
+  const btn = document.querySelector('[onclick="autoClassify()"]');
+  btn.disabled = true; btn.textContent = '분류 중…';
+
+  let assignJson = null;
+  try {
+    assignJson = await callAI(
+      `키워드: ${JSON.stringify(keywords)}
+설명 방법 목록(8가지): definition(정의), example(예시), compare(비교), contrast(대조), classify(분류), division(구분), analysis(분석), cause(인과)
+각 키워드를 가장 어울리는 설명 방법에 할당하세요.
+반드시 이 JSON 형식만 반환하세요:
+{"definition":[],"example":[],"compare":[],"contrast":[],"classify":[],"division":[],"analysis":[],"cause":[]}`,
+      '당신은 텍스트 분류 도구입니다. JSON만 반환하세요.'
+    );
+  } catch(e) { assignJson = null; }
+
+  const feedbackEl = document.getElementById('aiClassifyFeedback');
+  feedbackEl.style.display = 'block';
+
+  if (assignJson) {
+    try {
+      const clean = assignJson.replace(/```json|```/g,'').trim();
+      const parsed = JSON.parse(clean);
+      Object.keys(parsed).forEach(k => { if (methodAssignments[k] !== undefined) methodAssignments[k] = parsed[k]; });
+      renderChips();
+      renderMethodCards();
+      feedbackEl.innerHTML = `<div class="feedback-card"><h4>✦ AI 분류 완료</h4><p>AI가 키워드를 분류했습니다. 마음에 들지 않으면 직접 수정해보세요! 클릭하면 이동할 수 있어요.</p></div>`;
+    } catch {
+      feedbackEl.innerHTML = `<div class="feedback-card" style="border-left-color:var(--accent)"><h4>✦ 안내</h4><p>AI 분류 결과를 읽지 못했어요. 키워드를 직접 카드에 배치해보세요!</p></div>`;
+    }
+  } else {
+    feedbackEl.innerHTML = `<div class="feedback-card" style="border-left-color:var(--accent)"><h4>✦ 연결 실패</h4><p>AI에 연결하지 못했어요. 키워드를 직접 클릭해서 카드에 배치해보세요! 어렵지 않아요 😊</p></div>`;
+  }
+
+  btn.disabled = false; btn.textContent = '🤖 AI가 분류해줘';
+}
+
+// ── STAGE 2 → 3 ──
+async function proceedToDraft() {
+  const hasAny = METHODS.some(m => methodAssignments[m.id].length > 0);
+  if (!hasAny) { alert('최소 하나 이상 분류해보세요!'); return; }
+
+  goStage(3);
+  document.getElementById('nav3').classList.add('active');
+  document.getElementById('nav2').classList.add('completed');
+
+  // 초고 제목 인풋에 현재 제목 채우기
+  const draftTitleInput = document.getElementById('draftTitleInput');
+  if (draftTitleInput) draftTitleInput.value = title || topic;
+
+  // 구조 제안 AI
+  const usedMethods = METHODS.filter(m => methodAssignments[m.id].length > 0);
+  const usedDesc = usedMethods.map(m => `${m.name}: ${methodAssignments[m.id].join(', ')}`).join('\n');
+
+  // 브레인덤프 → 설명문 문장 변환 후 재활용 패널 렌더링
+  const recycleBox = document.getElementById('dumpRecycleBox');
+  const recycleChips = document.getElementById('dumpRecycleChips');
+
+  if (dumpSentences.length > 0) {
+    recycleBox.style.display = 'block';
+    recycleChips.innerHTML = `<span style="font-size:11px;color:var(--muted);">✦ 설명문 문장으로 변환 중…</span>`;
+
+    // 분류된 키워드와 방법 정보 전달
+    const assignedDesc = METHODS
+      .filter(m => methodAssignments[m.id].length > 0)
+      .map(m => `[${m.name}] ${methodAssignments[m.id].join(', ')}`)
+      .join(' / ');
+
+    const convertedJson = await callAI(
+      `학생이 "${topic}"에 대해 브레인덤프로 쓴 메모 조각들입니다: ${JSON.stringify(dumpSentences)}
+학생이 이 내용을 다음 설명 방법으로 사용하겠다고 선택했습니다: ${assignedDesc}
+
+각 메모 조각을 설명문에 바로 쓸 수 있는 자연스러운 설명문 문장으로 변환해주세요.
+- 메모 그대로 쓰지 말고, 선택한 설명 방법에 맞는 문장 형태로 바꿔주세요
+- 예시: "폐에 안 좋음" → "미세먼지는 폐 깊숙이 침투하여 호흡기 질환을 유발한다."
+- 예시: "마스크" → "미세먼지를 차단하기 위해 외출 시 마스크를 착용하는 것이 좋다."
+반드시 JSON 배열만 반환하세요: ["변환된 문장1","변환된 문장2",...]
+다른 말 하지 마세요.`,
+      '당신은 메모를 설명문 문장으로 바꾸는 도구입니다. JSON 배열만 반환하세요.'
+    );
+
+    let converted = [];
+    try {
+      if (convertedJson) {
+        const clean = convertedJson.replace(/```json|```/g,'').trim();
+        converted = JSON.parse(clean);
+      }
+    } catch { converted = []; }
+
+    // 변환 실패 시 원본 사용
+    if (!converted || converted.length === 0) converted = dumpSentences;
+
+    recycleChips.innerHTML = '';
+    converted.forEach((s, i) => {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;align-items:flex-start;gap:8px;width:100%;margin-bottom:8px;';
+
+      const original = dumpSentences[i] ? `원본: "${dumpSentences[i]}"` : '';
+
+      wrapper.innerHTML = `
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:3px;">${original}</div>
+          <span class="chip unassigned" style="font-size:13px;cursor:pointer;display:inline-block;white-space:normal;line-height:1.5;padding:7px 14px;" title="클릭하면 초고에 추가">${s}</span>
+        </div>`;
+
+      const chip = wrapper.querySelector('.chip');
+      chip.onclick = () => {
+        appendToDraft(s);
+        chip.style.background = 'var(--sage)';
+        chip.style.color = '#fff';
+        chip.style.borderColor = 'var(--sage)';
+        chip.style.textDecoration = 'line-through';
+        chip.style.opacity = '0.6';
+      };
+      recycleChips.appendChild(wrapper);
+    });
+  }
+
+  const structureGuide = await callAI(
+    `학생이 "${topic}"에 대한 설명문을 쓰려 합니다.
+분류된 내용:
+${usedDesc}
+
+설명문은 '처음-중간-끝' 구조로 이루어지며, 목적은 독자에게 정보를 전달하고 이해시키는 것입니다.
+이 내용을 어떤 순서로 배치하면 독자가 이해하기 쉬운 설명문이 될지 2~3문장으로 안내해주세요.
+'처음'에는 대상을 소개하거나 정의하고, '중간'에는 핵심 내용을 설명하며, '끝'에는 내용을 정리하거나 독자에게 남기는 생각을 씁니다.`
+  );
+
+  const guideEl = document.getElementById('aiStructureGuide');
+  guideEl.classList.remove('loading');
+  if (structureGuide) {
+    guideEl.innerHTML = structureGuide.replace(/\n/g,'<br>');
+  } else {
+    guideEl.innerHTML = `분류한 내용을 바탕으로 초고를 써보세요!<br>
+    <strong>처음</strong>(대상 소개·정의) → <strong>중간</strong>(핵심 내용 설명) → <strong>끝</strong>(정리·독자에게 남기는 말) 순서로 써보세요.<br>
+    아래 <strong>문장 틀</strong>을 클릭하면 자동으로 입력돼요 😊`;
+  }
+
+  renderStructureCards(usedMethods);
+}
+
+function renderStructureCards(usedMethods) {
+  const container = document.getElementById('structureCards');
+  container.innerHTML = '';
+
+  // 처음-중간-끝 안내 배너
+  const banner = document.createElement('div');
+  banner.style.cssText = 'display:flex;gap:0;margin-bottom:20px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border);';
+  banner.innerHTML = `
+    <div style="flex:1;padding:12px 16px;background:#e8f4e8;border-right:1px solid var(--border);">
+      <div style="font-size:10px;font-weight:700;color:var(--sage);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">처음</div>
+      <div style="font-size:12px;color:var(--ink);line-height:1.5;">대상 소개·정의<br>독자의 관심 유도</div>
+    </div>
+    <div style="flex:2;padding:12px 16px;background:#e8eef8;border-right:1px solid var(--border);">
+      <div style="font-size:10px;font-weight:700;color:#3a5a9a;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">중간</div>
+      <div style="font-size:12px;color:var(--ink);line-height:1.5;">핵심 내용 설명<br>설명 방법 활용해 정보 전달</div>
+    </div>
+    <div style="flex:1;padding:12px 16px;background:#f8e8e8;">
+      <div style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">끝</div>
+      <div style="font-size:12px;color:var(--ink);line-height:1.5;">내용 정리<br>독자에게 남기는 말</div>
+    </div>`;
+  container.appendChild(banner);
+
+  usedMethods.forEach(m => {
+    const section = document.createElement('div');
+    section.className = 'structure-section';
+    section.innerHTML = `
+      <h3>${m.emoji} ${m.name} 문단</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">분류된 내용: <strong>${methodAssignments[m.id].join(', ')}</strong></p>
+      <div class="sentence-starters">
+        ${m.starters.map(s =>
+          `<span class="starter-chip" onclick="appendToDraft('${s.replace(/'/g,"\\'")}')">📎 ${s}</span>`
+        ).join('')}
+      </div>`;
+    container.appendChild(section);
+  });
+}
+
+function appendToDraft(text) {
+  const area = document.getElementById('draftArea');
+  const pos = area.selectionStart;
+  const current = area.value;
+  const insert = (current.length > 0 && !current.endsWith('\n')) ? '\n' + text : text;
+  area.value = current.slice(0, pos) + insert + current.slice(pos);
+  area.focus();
+  const newPos = pos + insert.length;
+  area.setSelectionRange(newPos, newPos);
+  const len = area.value.replace(/\s/g,'').length;
+  document.getElementById('draftWordCount').textContent = `${len} 자`;
+}
+
+// ── AI FEEDBACK ──
+async function getFeedback() {
+  const draft = document.getElementById('draftArea').value.trim();
+  if (!draft) { alert('먼저 초고를 써보세요!'); return; }
+
+  const btn = document.querySelector('[onclick="getFeedback()"]');
+  btn.disabled = true; btn.textContent = '분석 중…';
+
+  const feedbackEl = document.getElementById('aiFeedbackSection');
+  feedbackEl.style.display = 'block';
+  feedbackEl.innerHTML = `<div class="ai-bubble loading"><div class="dot-loader"><span></span><span></span><span></span></div></div>`;
+
+  const currentTitle = document.getElementById('draftTitleInput')?.value.trim() || title || topic;
+
+  const fb = await callAI(
+    `학생이 "${topic}"에 대해 쓴 설명문 초고입니다.
+제목: "${currentTitle}"
+내용:
+"${draft}"
+
+설명문의 목적은 독자에게 정보를 전달하고 이해시키는 것입니다.
+설명문은 처음-중간-끝 구조로 이루어집니다.
+
+다음 네 가지를 간단히 피드백해주세요:
+1. 제목과 내용의 어울림 — 제목이 "${currentTitle}"이라면 어떤 내용이 있어야 자연스러운지, 지금 내용에서 빠진 부분이나 어울리지 않는 부분이 있는지 구체적으로
+2. 잘 된 점 — 정보가 잘 전달되는 부분을 구체적으로
+3. 설명 방법(정의·예시·비교·대조·분류·구분·분석·인과)이 잘 드러난 부분
+4. 독자가 더 잘 이해할 수 있도록 보완하면 좋을 점 한 가지
+
+중학생에게 말하듯 따뜻하고 격려하는 말투로 써주세요.`
+  );
+
+  if (fb) {
+    feedbackEl.innerHTML = `
+      <div class="feedback-card">
+        <h4>✦ AI 촉진자 피드백</h4>
+        <p>${fb.replace(/\n/g,'<br>')}</p>
+      </div>
+      <div style="text-align:center;margin-top:16px">
+        <div style="font-size:32px">🎉</div>
+        <p style="font-size:15px;color:var(--muted);margin-top:8px">초고 완성! 이제 다듬으면 훌륭한 설명문이 됩니다.</p>
+      </div>`;
+  } else {
+    feedbackEl.innerHTML = `
+      <div class="feedback-card" style="border-left-color:var(--gold)">
+        <h4>✦ 안내</h4>
+        <p>AI 피드백 연결에 실패했어요. 하지만 초고를 완성한 것만으로도 훌륭해요! 선생님께 직접 피드백을 받아보세요 😊</p>
+      </div>`;
+  }
+
+  btn.disabled = false; btn.textContent = '💬 AI 피드백 받기';
+}
+</script>
+</body>
+</html>
